@@ -55,3 +55,47 @@ def buscar_paciente(request):
             'value': paciente.nome
         })
     return JsonResponse(resultados, safe=False)
+
+from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+from collections import Counter
+from .models import Agendamento
+
+@login_required
+def relatorio_list(request):
+    agendamentos = Agendamento.objects.all()
+
+    # Receber filtros do GET
+    dia = request.GET.get('dia')
+    mes = request.GET.get('mes')
+    ano = request.GET.get('ano')
+
+    # Filtro por DIA (data completa)
+    if dia:
+        agendamentos = agendamentos.filter(data_hora__date=dia)
+
+    # Filtro por MÊS
+    if mes:
+        agendamentos = agendamentos.filter(data_hora__month=mes)
+
+    # Filtro por ANO
+    if ano:
+        agendamentos = agendamentos.filter(data_hora__year=ano)
+
+    # Contagem por status
+    status_count = Counter(ag.status for ag in agendamentos)
+
+    # Converter status para texto
+    status_display = dict(Agendamento.STATUS_CHOICES)
+    relatorios = {
+        status_display.get(status, status): quantidade
+        for status, quantidade in status_count.items()
+    }
+
+    return render(request, 'relatorio_list.html', {
+        'relatorios': relatorios,
+        'dia': dia,
+        'mes': mes,
+        'ano': ano
+    })
+
