@@ -1,0 +1,29 @@
+<div class="container mt-4">
+    <h4>Fila de Triagem</h4>
+
+    <table class="table table-bordered">
+        <thead class="table-light">
+            <tr>
+                <th>Paciente</th>
+                <th>Ação</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for paciente in pacientes %}
+            <tr>
+                <td>{{ paciente.nome }}</td>
+                <td>
+                    <a href="{% url 'realizar_triagem' paciente.id %}"
+                       class="btn btn-sm btn-primary">
+                        Realizar Triagem
+                    </a>
+                </td>
+            </tr>
+        {% empty %}
+            <tr>
+                <td colspan="2">Nenhum paciente encontrado.</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>

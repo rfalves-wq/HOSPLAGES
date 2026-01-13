@@ -40,6 +40,7 @@ INSTALLED_APPS = [
      'usuarios',
        'paciente',
        'agendamento',
+        'triagem',
 ]
 
 AUTH_USER_MODEL = 'usuarios.Usuario'

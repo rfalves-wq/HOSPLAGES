@@ -1,0 +1,13 @@
+<div class="container mt-4">
+    <h4>Triagem de Enfermagem</h4>
+
+    <p><strong>Paciente:</strong> {{ paciente.nome }}</p>
+
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+
+        <button class="btn btn-success">Salvar Triagem</button>
+        <a href="{% url 'fila_triagem' %}" class="btn btn-secondary">Cancelar</a>
+    </form>
+</div>
