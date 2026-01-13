@@ -1,3 +1,5 @@
 from django.contrib import admin
+from .models import FilaTriagem, Triagem
 
-# Register your models here.
+admin.site.register(FilaTriagem)
+admin.site.register(Triagem)

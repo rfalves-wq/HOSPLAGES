@@ -1,10 +1,23 @@
 from django.db import models
 from django.conf import settings
+from django.utils import timezone
 from paciente.models import Paciente
 
 
-class Triagem(models.Model):
+class FilaTriagem(models.Model):
+    paciente = models.ForeignKey(Paciente, on_delete=models.CASCADE)
+    data_entrada = models.DateTimeField(default=timezone.now)
+    atendido = models.BooleanField(default=False)
 
+    def tempo_espera_minutos(self):
+        delta = timezone.now() - self.data_entrada
+        return int(delta.total_seconds() / 60)
+
+    def __str__(self):
+        return self.paciente.nome
+
+
+class Triagem(models.Model):
     CLASSIFICACAO_RISCO = [
         ('VERMELHO', 'Vermelho - Emergência'),
         ('LARANJA', 'Laranja - Muito Urgente'),
@@ -14,21 +27,17 @@ class Triagem(models.Model):
     ]
 
     paciente = models.ForeignKey(Paciente, on_delete=models.CASCADE)
-
     enfermeiro = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
-        null=True,
-        related_name='triagens'
+        null=True
     )
 
-    # Sinais vitais
     pressao_arterial = models.CharField(max_length=20)
     frequencia_cardiaca = models.IntegerField()
     temperatura = models.DecimalField(max_digits=4, decimal_places=1)
     saturacao = models.IntegerField()
 
-    # Avaliação
     queixa_principal = models.TextField()
     observacoes = models.TextField(blank=True)
 
@@ -40,4 +49,4 @@ class Triagem(models.Model):
     data_triagem = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.paciente.nome} - {self.classificacao_risco}"
+        return f'{self.paciente.nome} - {self.classificacao_risco}'
