@@ -35,7 +35,7 @@ def paciente_list(request):
         pacientes = pacientes.filter(cpf__icontains=cpf_query)
     
     # Paginação
-    paginator = Paginator(pacientes, 3)  # 10 pacientes por página
+    paginator = Paginator(pacientes, 10)  # 10 pacientes por página
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
