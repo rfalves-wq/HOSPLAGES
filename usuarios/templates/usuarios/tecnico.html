@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard Tecnico</title>
+</head>
+<body>
+<h2>Bem-vindo, {{ request.user.username }} (Médico)</h2>
+<a href="{% url 'logout' %}">Sair</a>
+</body>
+</html>
