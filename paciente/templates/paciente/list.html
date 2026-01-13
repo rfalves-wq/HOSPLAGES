@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Lista de Pacientes</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+        body {
+            background-color: #e6f2ff;
+            font-family: Arial, sans-serif;
+        }
+        h2 {
+            color: #0057a0;
+        }
+        .table thead {
+            background-color: #0072bc;
+            color: #fff;
+        }
+        .btn-actions .btn {
+            margin-right: 5px;
+        }
+        .btn-actions .btn:last-child {
+            margin-right: 0;
+        }
+        .pagination .page-item.active .page-link {
+            background-color: #0072bc;
+            border-color: #0072bc;
+        }
+    </style>
+</head>
+<body>
+<div class="container mt-5">
+    <h2 class="mb-4">Pacientes Cadastrados</h2>
+
+    <!-- Botões de ação -->
+    <div class="mb-3 d-flex justify-content-between flex-wrap">
+        <div class="mb-2">
+            <a href="../recepcao" class="btn btn-secondary"><i class="bi bi-house-fill"></i> Voltar para Recepção</a>
+            <a href="{% url 'paciente_create' %}" class="btn btn-primary"><i class="bi bi-person-plus-fill"></i> Novo Paciente</a>
+        </div>
+        <div>
+            <a href="{% url 'logout' %}" class="btn btn-secondary"><i class="bi bi-box-arrow-right"></i> Sair</a>
+        </div>
+    </div>
+
+    <!-- Formulário de busca -->
+    <div class="mb-3">
+        <form method="get" class="row g-2">
+            <div class="col-md-5">
+                <input type="text" name="nome" class="form-control" placeholder="Buscar por Nome" value="{{ nome_query }}">
+            </div>
+            <div class="col-md-5">
+                <input type="text" name="cpf" class="form-control" placeholder="Buscar por CPF" value="{{ cpf_query }}">
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100"><i class="bi bi-search"></i> Buscar</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Tabela de pacientes -->
+    <table class="table table-striped table-hover align-middle">
+        <thead>
+            <tr>
+                <th>Nome</th>
+                <th>CPF</th>
+                <th>Telefone</th>
+                <th>Email</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for paciente in page_obj %}
+            <tr>
+                <td>{{ paciente.nome }}</td>
+                <td>{{ paciente.cpf }}</td>
+                <td>{{ paciente.telefone }}</td>
+                <td>{{ paciente.email }}</td>
+                <td class="btn-actions">
+                    <a href="{% url 'paciente_edit' paciente.id %}" class="btn btn-sm btn-warning" title="Editar">
+                        <i class="bi bi-pencil-fill"></i>
+                    </a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" class="text-center">Nenhum paciente encontrado.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Paginação -->
+    {% if page_obj.has_other_pages %}
+    <nav aria-label="Paginação">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}&nome={{ nome_query }}&cpf={{ cpf_query }}" aria-label="Anterior">
+                    &laquo;
+                </a>
+            </li>
+            {% else %}
+            <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
+            {% endif %}
+
+            {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                {% elif num > page_obj.number|add:-3 and num < page_obj.number|add:3 %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ num }}&nome={{ nome_query }}&cpf={{ cpf_query }}">{{ num }}</a>
+                </li>
+                {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}&nome={{ nome_query }}&cpf={{ cpf_query }}" aria-label="Próximo">
+                    &raquo;
+                </a>
+            </li>
+            {% else %}
+            <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
