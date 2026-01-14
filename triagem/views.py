@@ -1,19 +1,18 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from paciente.models import Paciente
-from .models import Triagem
+from .models import Triagem, FilaTriagem
 from .forms import TriagemForm
-
 
 @login_required
 def fila_triagem(request):
     """
     Lista pacientes disponíveis para triagem
-    (fluxo temporário enquanto não existe recepção)
+    (somente pacientes não atendidos na fila)
     """
-    pacientes = Paciente.objects.all()
+    fila = FilaTriagem.objects.filter(atendido=False).order_by('data_entrada')
     return render(request, 'triagem/fila_triagem.html', {
-        'pacientes': pacientes
+        'fila': fila
     })
 
 
@@ -24,10 +23,18 @@ def realizar_triagem(request, paciente_id):
     if request.method == 'POST':
         form = TriagemForm(request.POST)
         if form.is_valid():
+            # Salva a triagem
             triagem = form.save(commit=False)
             triagem.paciente = paciente
             triagem.enfermeiro = request.user
             triagem.save()
+
+            # Atualiza a fila: marca paciente como atendido
+            fila_item = FilaTriagem.objects.filter(paciente=paciente, atendido=False).first()
+            if fila_item:
+                fila_item.atendido = True
+                fila_item.save()
+
             return redirect('fila_triagem')
     else:
         form = TriagemForm()

@@ -29,12 +29,23 @@ def agendamento_create(request):
 
     return render(request, 'agendamento_form.html', {'user': request.user})
 
+from django.shortcuts import redirect, get_object_or_404
+from .models import Agendamento
+from triagem.models import FilaTriagem  # importar o modelo da fila
 
 @login_required
 def enviar_triagem(request, pk):
     agendamento = get_object_or_404(Agendamento, pk=pk)
+
+    # Atualiza o status do agendamento
     agendamento.status = 'TR'
     agendamento.save()
+
+    # Verifica se já existe na fila para não duplicar
+    fila_existente = FilaTriagem.objects.filter(paciente=agendamento.paciente, atendido=False).exists()
+    if not fila_existente:
+        FilaTriagem.objects.create(paciente=agendamento.paciente)
+
     return redirect('agendamento_list')
 
 
@@ -98,4 +109,3 @@ def relatorio_list(request):
         'mes': mes,
         'ano': ano
     })
-
