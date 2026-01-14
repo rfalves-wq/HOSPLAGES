@@ -27,6 +27,33 @@ h2 {text-align: center; color: #0057a0; margin-bottom: 20px;}
         <a href="{% url 'logout' %}" class="btn-logout">Sair</a>
         <a href="{% url 'agendamento_create' %}" class="btn btn-success">Novo Agendamento</a>
     </div>
+<!-- Filtro por data -->
+<form method="get" class="mb-3 text-center">
+    <label for="data">Filtrar por data:</label>
+    <input type="date" id="data" name="data" value="{{ data_filtro }}">
+    <button type="submit" class="btn btn-primary btn-sm">Filtrar</button>
+</form>
+<!-- Dashboard de agendamentos -->
+<div class="row mb-4 text-center">
+    <div class="col-md-4">
+        <div class="card bg-primary text-white p-3">
+            <h5>Total do Dia</h5>
+            <h3>{{ total_agendamentos }}</h3>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-warning text-dark p-3">
+            <h5>Agendados</h5>
+            <h3>{{ status_dict.AG|default:0 }}</h3>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-success text-white p-3">
+            <h5>Em Triagem</h5>
+            <h3>{{ status_dict.TR|default:0 }}</h3>
+        </div>
+    </div>
+</div>
 
     <!-- Tabela de agendamentos -->
     <table class="table table-bordered">
