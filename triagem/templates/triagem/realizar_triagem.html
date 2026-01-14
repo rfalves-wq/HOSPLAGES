@@ -1,13 +1,127 @@
-<div class="container mt-4">
-    <h4>Triagem de Enfermagem</h4>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Triagem de Enfermagem</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
 
-    <p><strong>Paciente:</strong> {{ paciente.nome }}</p>
+<style>
+    body {
+        background-color: #f1f8ff;
+        font-family: Arial, sans-serif;
+    }
+    .card {
+        border-radius: 12px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+    }
+    h4, h5 {
+        color: #0057a0;
+    }
+    .section-title {
+        background-color: #e6f2ff;
+        padding: 10px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        font-weight: bold;
+    }
+    .btn i {
+        margin-right: 5px;
+    }
+    /* Cores de classificação de risco */
+    .risco-vermelho { background-color: #ff6b6b; color: white; padding: 10px; border-radius: 8px; text-align:center; }
+    .risco-amarelo { background-color: #ffd93d; color: black; padding: 10px; border-radius: 8px; text-align:center; }
+    .risco-verde { background-color: #6bcB77; color: white; padding: 10px; border-radius: 8px; text-align:center; }
+</style>
+</head>
+<body>
 
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
+<div class="container mt-5">
+    <h4 class="mb-4">Triagem de Enfermagem</h4>
 
-        <button class="btn btn-success">Salvar Triagem</button>
-        <a href="{% url 'fila_triagem' %}" class="btn btn-secondary">Cancelar</a>
-    </form>
+    <!-- Card do Paciente -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Paciente: {{ paciente.nome }}</h5>
+            <div class="row">
+                {% if paciente.idade %}
+                <div class="col-md-6"><p class="card-text"><strong>Idade:</strong> {{ paciente.idade }} anos</p></div>
+                {% endif %}
+                {% if paciente.cpf %}
+                <div class="col-md-6"><p class="card-text"><strong>CPF:</strong> {{ paciente.cpf }}</p></div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Formulário de Triagem -->
+    <div class="card">
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+
+                <!-- Sinais Vitais -->
+                <div class="section-title">Sinais Vitais</div>
+                <div class="row g-3 mb-3">
+                    <div class="col-md-3">
+                        <label for="{{ form.pressao_arterial.id_for_label }}" class="form-label">Pressão Arterial</label>
+                        {{ form.pressao_arterial }}
+                    </div>
+                    <div class="col-md-3">
+                        <label for="{{ form.temperatura.id_for_label }}" class="form-label">Temperatura (°C)</label>
+                        {{ form.temperatura }}
+                    </div>
+                    <div class="col-md-3">
+                        <label for="{{ form.frequencia_cardiaca.id_for_label }}" class="form-label">Frequência Cardíaca</label>
+                        {{ form.frequencia_cardiaca }}
+                    </div>
+                    <div class="col-md-3">
+                        <label for="{{ form.saturacao.id_for_label }}" class="form-label">Saturação (%)</label>
+                        {{ form.saturacao }}
+                    </div>
+                </div>
+
+                <!-- Queixa Principal -->
+                <div class="section-title">Queixa Principal</div>
+                <div class="mb-3">
+                    {{ form.queixa_principal }}
+                </div>
+
+                <!-- Observações -->
+                <div class="section-title">Observações</div>
+                <div class="mb-3">
+                    {{ form.observacoes }}
+                </div>
+
+                <!-- Classificação de Risco -->
+                <div class="section-title">Classificação de Risco</div>
+                <div class="mb-3">
+                    {% if form.classificacao_risco.value == "VERMELHO" %}
+                        <div class="risco-vermelho">{{ form.classificacao_risco }}</div>
+                    {% elif form.classificacao_risco.value == "AMARELO" %}
+                        <div class="risco-amarelo">{{ form.classificacao_risco }}</div>
+                    {% elif form.classificacao_risco.value == "VERDE" %}
+                        <div class="risco-verde">{{ form.classificacao_risco }}</div>
+                    {% else %}
+                        {{ form.classificacao_risco }}
+                    {% endif %}
+                </div>
+
+                <!-- Botões -->
+                <div class="d-flex justify-content-between mt-3">
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-check-circle"></i> Salvar Triagem
+                    </button>
+                    <a href="{% url 'fila_triagem' %}" class="btn btn-secondary">
+                        <i class="bi bi-x-circle"></i> Cancelar
+                    </a>
+                </div>
+
+            </form>
+        </div>
+    </div>
 </div>
+
+</body>
+</html>
