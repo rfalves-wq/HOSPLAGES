@@ -82,6 +82,38 @@ h2 {text-align: center; color: #0057a0; margin-bottom: 20px;}
         {% endfor %}
         </tbody>
     </table>
+    <!-- Paginação -->
+<nav aria-label="Paginação">
+  <ul class="pagination justify-content-center">
+
+    {% if agendamentos.has_previous %}
+      <li class="page-item">
+        <a class="page-link"
+           href="?page={{ agendamentos.previous_page_number }}&data={{ data_filtro }}">
+           Anterior
+        </a>
+      </li>
+    {% endif %}
+
+    <li class="page-item disabled">
+      <span class="page-link">
+        Página {{ agendamentos.number }} de {{ agendamentos.paginator.num_pages }}
+      </span>
+    </li>
+
+    {% if agendamentos.has_next %}
+      <li class="page-item">
+        <a class="page-link"
+           href="?page={{ agendamentos.next_page_number }}&data={{ data_filtro }}">
+           Próxima
+        </a>
+      </li>
+    {% endif %}
+
+  </ul>
+</nav>
+
 </div>
+
 </body>
 </html>

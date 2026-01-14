@@ -19,29 +19,59 @@ from django.utils import timezone
 from collections import Counter
 from .models import Agendamento
 
+from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+from django.utils import timezone
+from collections import Counter
+from .models import Agendamento
+
+from django.core.paginator import Paginator
+from django.utils import timezone
+from collections import Counter
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render
+from .models import Agendamento
+
+
+from django.core.paginator import Paginator
+from django.utils import timezone
+from collections import Counter
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render
+from .models import Agendamento
+
+
 @login_required
 def agendamento_list(request):
-    # Data atual
     hoje = timezone.localdate()
-
-    # Filtro por data se passado via GET, senão usa hoje
     data_filtro = request.GET.get('data')
+
     if data_filtro:
-        agendamentos = Agendamento.objects.filter(data_hora__date=data_filtro)
+        agendamentos_qs = Agendamento.objects.filter(
+            data_hora__date=data_filtro
+        ).order_by('-data_hora')
+        data_template = data_filtro  # já é string YYYY-MM-DD
     else:
-        agendamentos = Agendamento.objects.filter(data_hora__date=hoje)
+        agendamentos_qs = Agendamento.objects.filter(
+            data_hora__date=hoje
+        ).order_by('-data_hora')
+        data_template = hoje.strftime('%Y-%m-%d')  # FORÇA formato correto
 
-    # Dashboard de status
-    status_count = Counter(ag.status for ag in agendamentos)
+    # Dashboard
+    status_count = Counter(ag.status for ag in agendamentos_qs)
     status_dict = dict(status_count)
+    total_agendamentos = agendamentos_qs.count()
 
-    total_agendamentos = agendamentos.count()
+    # Paginação
+    paginator = Paginator(agendamentos_qs, 10)
+    page_number = request.GET.get('page')
+    agendamentos = paginator.get_page(page_number)
 
     return render(request, 'agendamento_list.html', {
         'agendamentos': agendamentos,
         'total_agendamentos': total_agendamentos,
         'status_dict': status_dict,
-        'data_filtro': data_filtro or hoje
+        'data_filtro': data_template,  # SEMPRE YYYY-MM-DD
     })
 
 
