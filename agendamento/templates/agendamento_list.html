@@ -3,117 +3,219 @@
 <head>
 <meta charset="UTF-8">
 <title>Agendamentos - Recepção</title>
+
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+
 <style>
-body {background-color: #f1f8ff; font-family: Arial, sans-serif;}
-.container {max-width: 900px; margin: 50px auto; padding: 30px; background-color: #fff; border-radius: 10px; box-shadow: 0 0 15px rgba(0,0,0,0.1);}
-.logo {display: block; margin: 0 auto 20px; width: 120px;}
-h2 {text-align: center; color: #0057a0; margin-bottom: 20px;}
-.button-group {display: flex; justify-content: center; gap: 15px; margin-bottom: 20px;}
-.btn-voltar, .btn-logout, .btn-success {background-color:#0072bc; color:#fff; border:none; padding:10px 25px; border-radius:5px; font-weight:bold; text-decoration:none; text-align:center;}
-.btn-voltar:hover, .btn-logout:hover, .btn-success:hover {background-color:#0057a0; color:#fff;}
-.table th, .table td {vertical-align: middle;}
+body {
+    background-color: #f1f8ff;
+    font-family: Arial, sans-serif;
+}
+
+.container {
+    max-width: 1000px;
+    margin: 40px auto;
+    padding: 30px;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.1);
+}
+
+.logo {
+    display: block;
+    margin: 0 auto 15px;
+    width: 110px;
+}
+
+h2 {
+    text-align: center;
+    color: #0057a0;
+    margin-bottom: 5px;
+}
+
+.subtitulo {
+    text-align: center;
+    color: #555;
+    margin-bottom: 25px;
+}
+
+.button-group {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 25px;
+    flex-wrap: wrap;
+}
+
+.btn-padrao {
+    background-color:#0072bc;
+    color:#fff;
+    border:none;
+    padding:10px 22px;
+    border-radius:5px;
+    font-weight:bold;
+    text-decoration:none;
+}
+
+.btn-padrao:hover {
+    background-color:#0057a0;
+    color:#fff;
+}
+
+.table th {
+    background-color: #e9f2fb;
+}
+
+.status-badge {
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-size: 0.85rem;
+}
+
+.status-AG {
+    background-color: #ffc107;
+    color: #000;
+}
+
+.status-TR {
+    background-color: #198754;
+    color: #fff;
+}
+
+tr.triagem {
+    background-color: #e8f7ee;
+}
 </style>
 </head>
+
 <body>
 <div class="container">
-    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Logo_do_SUS.svg/2560px-Logo_do_SUS.svg.png" class="logo" alt="Logo SUS">
-    <h2>Agendamentos - {{ user.username }}</h2>
 
-    <!-- Grupo de botões alinhados -->
+    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Logo_do_SUS.svg/2560px-Logo_do_SUS.svg.png" class="logo">
+
+    <h2>Agendamentos</h2>
+    <div class="subtitulo">
+        Usuário: <strong>{{ user.username }}</strong> |
+        Data: <strong>{{ data_filtro }}</strong>
+    </div>
+
+    <!-- Botões -->
     <div class="button-group">
-        <a href="../recepcao" class="btn-voltar">Voltar para Início</a>
-        <a href="{% url 'logout' %}" class="btn-logout">Sair</a>
-        <a href="{% url 'agendamento_create' %}" class="btn btn-success">Novo Agendamento</a>
+        <a href="../recepcao" class="btn-padrao">
+            <i class="bi bi-arrow-left"></i> Início
+        </a>
+        <a href="{% url 'agendamento_create' %}" class="btn btn-success">
+            <i class="bi bi-plus-circle"></i> Novo Agendamento
+        </a>
+        <a href="{% url 'logout' %}" class="btn btn-danger">
+            <i class="bi bi-box-arrow-right"></i> Sair
+        </a>
     </div>
-<!-- Filtro por data -->
-<form method="get" class="mb-3 text-center">
-    <label for="data">Filtrar por data:</label>
-    <input type="date" id="data" name="data" value="{{ data_filtro }}">
-    <button type="submit" class="btn btn-primary btn-sm">Filtrar</button>
-</form>
-<!-- Dashboard de agendamentos -->
-<div class="row mb-4 text-center">
-    <div class="col-md-4">
-        <div class="card bg-primary text-white p-3">
-            <h5>Total do Dia</h5>
-            <h3>{{ total_agendamentos }}</h3>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card bg-warning text-dark p-3">
-            <h5>Agendados</h5>
-            <h3>{{ status_dict.AG|default:0 }}</h3>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card bg-success text-white p-3">
-            <h5>Em Triagem</h5>
-            <h3>{{ status_dict.TR|default:0 }}</h3>
-        </div>
-    </div>
-</div>
 
-    <!-- Tabela de agendamentos -->
-    <table class="table table-bordered">
-        <thead class="table-primary">
+    <!-- Filtro -->
+    <form method="get" class="row g-2 justify-content-center mb-4">
+        <div class="col-auto">
+            <input type="date" name="data" value="{{ data_filtro }}" class="form-control">
+        </div>
+        <div class="col-auto">
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-funnel"></i> Filtrar
+            </button>
+        </div>
+    </form>
+
+    <!-- Dashboard -->
+    <div class="row mb-4 text-center">
+        <div class="col-md-4 mb-2">
+            <div class="card bg-primary text-white p-3">
+                <h6>Total do Dia</h6>
+                <h3>{{ total_agendamentos }}</h3>
+            </div>
+        </div>
+        <div class="col-md-4 mb-2">
+            <div class="card bg-warning text-dark p-3">
+                <h6>Agendados</h6>
+                <h3>{{ status_dict.AG|default:0 }}</h3>
+            </div>
+        </div>
+        <div class="col-md-4 mb-2">
+            <div class="card bg-success text-white p-3">
+                <h6>Em Triagem</h6>
+                <h3>{{ status_dict.TR|default:0 }}</h3>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabela -->
+    <table class="table table-bordered table-hover">
+        <thead>
             <tr>
                 <th>Paciente</th>
                 <th>Data / Hora</th>
                 <th>Status</th>
                 <th>Observações</th>
-                <th>Ações</th>
+                <th class="text-center">Ações</th>
             </tr>
         </thead>
         <tbody>
         {% for agendamento in agendamentos %}
-            <tr>
+            <tr class="{% if agendamento.status == 'TR' %}triagem{% endif %}">
                 <td>{{ agendamento.paciente }}</td>
                 <td>{{ agendamento.data_hora|date:"d/m/Y H:i" }}</td>
-                <td>{{ agendamento.get_status_display }}</td>
-                <td>{{ agendamento.observacoes }}</td>
                 <td>
+                    <span class="status-badge status-{{ agendamento.status }}">
+                        {{ agendamento.get_status_display }}
+                    </span>
+                </td>
+                <td>{{ agendamento.observacoes|default:"—" }}</td>
+                <td class="text-center">
                     {% if agendamento.status != 'TR' %}
-                    <a href="{% url 'enviar_triagem' agendamento.id %}" class="btn btn-warning btn-sm">Enviar Triagem</a>
+                        <a href="{% url 'enviar_triagem' agendamento.id %}" class="btn btn-warning btn-sm">
+                            <i class="bi bi-arrow-repeat"></i> Triagem
+                        </a>
+                    {% else %}
+                        —
                     {% endif %}
+                </td>
+            </tr>
+        {% empty %}
+            <tr>
+                <td colspan="5" class="text-center text-muted">
+                    Nenhum agendamento encontrado para esta data.
                 </td>
             </tr>
         {% endfor %}
         </tbody>
     </table>
+
     <!-- Paginação -->
-<nav aria-label="Paginação">
-  <ul class="pagination justify-content-center">
+    <nav>
+        <ul class="pagination justify-content-center">
+            {% if agendamentos.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ agendamentos.previous_page_number }}&data={{ data_filtro }}">
+                        Anterior
+                    </a>
+                </li>
+            {% endif %}
 
-    {% if agendamentos.has_previous %}
-      <li class="page-item">
-        <a class="page-link"
-           href="?page={{ agendamentos.previous_page_number }}&data={{ data_filtro }}">
-           Anterior
-        </a>
-      </li>
-    {% endif %}
+            <li class="page-item disabled">
+                <span class="page-link">
+                    Página {{ agendamentos.number }} de {{ agendamentos.paginator.num_pages }}
+                </span>
+            </li>
 
-    <li class="page-item disabled">
-      <span class="page-link">
-        Página {{ agendamentos.number }} de {{ agendamentos.paginator.num_pages }}
-      </span>
-    </li>
-
-    {% if agendamentos.has_next %}
-      <li class="page-item">
-        <a class="page-link"
-           href="?page={{ agendamentos.next_page_number }}&data={{ data_filtro }}">
-           Próxima
-        </a>
-      </li>
-    {% endif %}
-
-  </ul>
-</nav>
+            {% if agendamentos.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ agendamentos.next_page_number }}&data={{ data_filtro }}">
+                        Próxima
+                    </a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
 
 </div>
-
 </body>
 </html>
