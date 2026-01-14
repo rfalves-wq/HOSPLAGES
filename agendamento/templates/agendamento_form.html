@@ -6,53 +6,14 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
 <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
 <style>
-body {
-    background-color: #f1f8ff;
-    font-family: Arial, sans-serif;
-}
-.container {
-    max-width: 600px;
-    margin: 50px auto;
-    padding: 30px;
-    background-color: #fff;
-    border-radius: 10px;
-    box-shadow: 0 0 15px rgba(0,0,0,0.1);
-}
-.logo {
-    display: block;
-    margin: 0 auto 20px;
-    width: 120px;
-}
-h2 {
-    text-align: center;
-    color: #0057a0;
-    margin-bottom: 20px;
-}
-/* Alinhamento dos botões */
-.button-group {
-    display: flex;
-    justify-content: center;
-    gap: 15px; /* Espaço entre os botões */
-    margin-bottom: 20px;
-}
-.btn-voltar, .btn-logout, .btn-success {
-    background-color:#0072bc;
-    color:#fff;
-    border:none;
-    padding:10px 25px;
-    border-radius:5px;
-    font-weight:bold;
-    text-decoration:none;
-    text-align:center;
-}
-.btn-voltar:hover, .btn-logout:hover, .btn-success:hover {
-    background-color:#0057a0;
-    color:#fff;
-}
-label {
-    font-weight: bold;
-    margin-top: 10px;
-}
+body { background-color: #f1f8ff; font-family: Arial, sans-serif; }
+.container { max-width: 600px; margin: 50px auto; padding: 30px; background-color: #fff; border-radius: 10px; box-shadow: 0 0 15px rgba(0,0,0,0.1); }
+.logo { display: block; margin: 0 auto 20px; width: 120px; }
+h2 { text-align: center; color: #0057a0; margin-bottom: 20px; }
+.button-group { display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; }
+.btn-voltar, .btn-logout, .btn-success { background-color:#0072bc; color:#fff; border:none; padding:10px 25px; border-radius:5px; font-weight:bold; text-decoration:none; text-align:center; }
+.btn-voltar:hover, .btn-logout:hover, .btn-success:hover { background-color:#0057a0; color:#fff; }
+label { font-weight: bold; margin-top: 10px; }
 </style>
 </head>
 <body>
@@ -60,22 +21,22 @@ label {
     <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Logo_do_SUS.svg/2560px-Logo_do_SUS.svg.png" class="logo" alt="Logo SUS">
     <h2>Novo Agendamento - {{ user.username }}</h2>
 
-    <!-- Grupo de botões alinhados -->
+    <!-- Botões -->
     <div class="button-group">
-        <a href="../../recepcao" class="btn-voltar">Voltar para Início</a>
+        <a href="{% url 'recepcao_dashboard' %}" class="btn-voltar">Voltar para Início</a>
         <a href="{% url 'logout' %}" class="btn-logout">Sair</a>
     </div>
 
     <!-- Formulário -->
     <form method="post">
         {% csrf_token %}
-        
-        <!-- Campo paciente com autocomplete -->
+
+        <!-- Paciente com autocomplete -->
         <label for="paciente_input">Paciente</label>
         <input type="text" id="paciente_input" class="form-control" placeholder="Digite o nome do paciente" required>
         <input type="hidden" id="paciente_id" name="paciente">
 
-        <!-- Data/Hora -->
+        <!-- Data e hora -->
         <label for="data_hora">Data / Hora</label>
         <input type="datetime-local" name="data_hora" id="data_hora" class="form-control" required>
 
@@ -93,6 +54,7 @@ label {
 
 <script>
 $(function() {
+    // Autocomplete
     $("#paciente_input").autocomplete({
         source: "{% url 'buscar_paciente' %}",
         minLength: 2,
@@ -101,6 +63,15 @@ $(function() {
             $("#paciente_id").val(ui.item.id);
             return false;
         }
+    });
+
+    // Validação antes de enviar
+    $("form").submit(function() {
+        if ($("#paciente_id").val() === "") {
+            alert("Selecione um paciente válido da lista.");
+            return false;
+        }
+        return true;
     });
 });
 </script>

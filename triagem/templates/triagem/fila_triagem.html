@@ -4,10 +4,41 @@
     <meta charset="UTF-8">
     <title>Fila de Triagem</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <style>
+        body {background-color: #f1f8ff; font-family: Arial, sans-serif;}
+        .container {max-width: 900px; margin: 50px auto; padding: 30px; background-color: #fff; border-radius: 10px; box-shadow: 0 0 15px rgba(0,0,0,0.1);}
+        h2 {text-align: center; color: #0057a0; margin-bottom: 20px;}
+        .card {padding: 15px; border-radius: 10px; color: #fff; font-weight: bold; text-align: center;}
+        .card h5 {margin-bottom: 10px;}
+    </style>
 </head>
 <body>
-<div class="container mt-5">
+<div class="container">
     <h2>Fila de Triagem</h2>
+
+    <!-- Dashboard -->
+    <div class="row mb-4 text-center">
+        <div class="col-md-4">
+            <div class="card bg-primary">
+                <h5>Total na Fila</h5>
+                <h3>{{ total_pacientes }}</h3>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-warning text-dark">
+                <h5>Tempo 0-5 min</h5>
+                <h3>{{ tempo_espera_0_5 }}</h3>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-danger">
+                <h5>Mais de 15 min</h5>
+                <h3>{{ tempo_espera_15_ }}</h3>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabela de pacientes -->
     <table class="table table-striped">
         <thead>
             <tr>
@@ -22,9 +53,7 @@
                 <td>{{ item.paciente.nome }}</td>
                 <td>{{ item.tempo_espera_minutos }}</td>
                 <td>
-                    <a href="{% url 'realizar_triagem' item.paciente.id %}" class="btn btn-primary btn-sm">
-                        Triagem
-                    </a>
+                    <a href="{% url 'realizar_triagem' item.paciente.id %}" class="btn btn-primary btn-sm">Triagem</a>
                 </td>
             </tr>
             {% empty %}
@@ -35,5 +64,12 @@
         </tbody>
     </table>
 </div>
+
+<!-- Atualização automática a cada 5 segundos -->
+<script>
+    setTimeout(function() {
+        window.location.reload();
+    }, 5000);
+</script>
 </body>
 </html>

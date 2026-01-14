@@ -3,17 +3,33 @@ from django.contrib.auth.decorators import login_required
 from paciente.models import Paciente
 from .models import Triagem, FilaTriagem
 from .forms import TriagemForm
+from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+from django.utils import timezone
+from triagem.models import FilaTriagem
 
 @login_required
 def fila_triagem(request):
-    """
-    Lista pacientes disponíveis para triagem
-    (somente pacientes não atendidos na fila)
-    """
+    # Pacientes na fila, não atendidos
     fila = FilaTriagem.objects.filter(atendido=False).order_by('data_entrada')
+
+    # Contagem para dashboard
+    total_pacientes = fila.count()
+    
+    # Quantidade por tempo de espera
+    tempo_espera_0_5 = fila.filter(data_entrada__gte=timezone.now()-timezone.timedelta(minutes=5)).count()
+    tempo_espera_5_15 = fila.filter(data_entrada__lt=timezone.now()-timezone.timedelta(minutes=5),
+                                     data_entrada__gte=timezone.now()-timezone.timedelta(minutes=15)).count()
+    tempo_espera_15_ = fila.filter(data_entrada__lt=timezone.now()-timezone.timedelta(minutes=15)).count()
+
     return render(request, 'triagem/fila_triagem.html', {
-        'fila': fila
+        'fila': fila,
+        'total_pacientes': total_pacientes,
+        'tempo_espera_0_5': tempo_espera_0_5,
+        'tempo_espera_5_15': tempo_espera_5_15,
+        'tempo_espera_15_': tempo_espera_15_,
     })
+
 
 
 @login_required

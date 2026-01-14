@@ -13,33 +13,35 @@ from django.utils import timezone
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count
 from .models import Agendamento
+from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+from django.utils import timezone
+from collections import Counter
+from .models import Agendamento
 
 @login_required
 def agendamento_list(request):
+    # Data atual
     hoje = timezone.localdate()
-    data_filtro = request.GET.get('data', None)
 
-    # Filtro por data
+    # Filtro por data se passado via GET, senão usa hoje
+    data_filtro = request.GET.get('data')
     if data_filtro:
-        agendamentos = Agendamento.objects.filter(data_hora__date=data_filtro).order_by('data_hora')
+        agendamentos = Agendamento.objects.filter(data_hora__date=data_filtro)
     else:
-        agendamentos = Agendamento.objects.filter(data_hora__date=hoje).order_by('data_hora')
-        data_filtro = hoje
+        agendamentos = Agendamento.objects.filter(data_hora__date=hoje)
 
-    # Contagem total
+    # Dashboard de status
+    status_count = Counter(ag.status for ag in agendamentos)
+    status_dict = dict(status_count)
+
     total_agendamentos = agendamentos.count()
-
-    # Contagem por status
-    status_counts = agendamentos.values('status').annotate(qtd=Count('id'))
-    # Converter para dicionário fácil de acessar no template
-    status_dict = {item['status']: item['qtd'] for item in status_counts}
 
     return render(request, 'agendamento_list.html', {
         'agendamentos': agendamentos,
-        'user': request.user,
-        'data_filtro': data_filtro,
         'total_agendamentos': total_agendamentos,
         'status_dict': status_dict,
+        'data_filtro': data_filtro or hoje
     })
 
 
