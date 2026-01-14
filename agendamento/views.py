@@ -1,46 +1,29 @@
+# ==============================
+# IMPORTS PADRÃO DJANGO
+# ==============================
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from .models import Agendamento
-from .forms import AgendamentoForm
-
-from django.shortcuts import render
+from django.http import JsonResponse
 from django.utils import timezone
-from django.contrib.auth.decorators import login_required
-from .models import Agendamento
-
-from django.shortcuts import render
-from django.utils import timezone
-from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
 from django.db.models import Count
-from .models import Agendamento
-from django.shortcuts import render
-from django.contrib.auth.decorators import login_required
-from django.utils import timezone
+
+# ==============================
+# IMPORTS PYTHON
+# ==============================
 from collections import Counter
+
+# ==============================
+# IMPORTS DO PROJETO
+# ==============================
 from .models import Agendamento
-
-from django.shortcuts import render
-from django.contrib.auth.decorators import login_required
-from django.utils import timezone
-from collections import Counter
-from .models import Agendamento
-
-from django.core.paginator import Paginator
-from django.utils import timezone
-from collections import Counter
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render
-from .models import Agendamento
+from paciente.models import Paciente
+from triagem.models import FilaTriagem
 
 
-from django.core.paginator import Paginator
-from django.utils import timezone
-from collections import Counter
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render
-from .models import Agendamento
-
-
+# ==============================
+# LISTAGEM DE AGENDAMENTOS (com filtro, dashboard e paginação)
+# ==============================
 @login_required
 def agendamento_list(request):
     hoje = timezone.localdate()
@@ -49,17 +32,19 @@ def agendamento_list(request):
     if data_filtro:
         agendamentos_qs = Agendamento.objects.filter(
             data_hora__date=data_filtro
-        ).order_by('-data_hora')
-        data_template = data_filtro  # já é string YYYY-MM-DD
+        )
+        data_template = data_filtro
     else:
         agendamentos_qs = Agendamento.objects.filter(
             data_hora__date=hoje
-        ).order_by('-data_hora')
-        data_template = hoje.strftime('%Y-%m-%d')  # FORÇA formato correto
+        )
+        data_template = hoje.strftime('%Y-%m-%d')
+
+    # Ordenação: mais recentes primeiro
+    agendamentos_qs = agendamentos_qs.order_by('-data_hora')
 
     # Dashboard
-    status_count = Counter(ag.status for ag in agendamentos_qs)
-    status_dict = dict(status_count)
+    status_dict = dict(Counter(ag.status for ag in agendamentos_qs))
     total_agendamentos = agendamentos_qs.count()
 
     # Paginação
@@ -71,35 +56,25 @@ def agendamento_list(request):
         'agendamentos': agendamentos,
         'total_agendamentos': total_agendamentos,
         'status_dict': status_dict,
-        'data_filtro': data_template,  # SEMPRE YYYY-MM-DD
+        'data_filtro': data_template,
     })
 
-
-
-# agendamento/views.py
-from paciente.models import Paciente
-
+# ==============================
+# CRIAR AGENDAMENTO (com validação básica)
+# ==============================
 @login_required
 def agendamento_create(request):
     if request.method == 'POST':
         paciente_id = request.POST.get('paciente')
-        if not paciente_id:
-            # Pode exibir uma mensagem de erro ou voltar para o form
-            return render(request, 'agendamento_form.html', {
-                'user': request.user,
-                'erro': 'Selecione um paciente antes de criar o agendamento.'
-            })
-
-        try:
-            paciente = Paciente.objects.get(pk=paciente_id)
-        except Paciente.DoesNotExist:
-            return render(request, 'agendamento_form.html', {
-                'user': request.user,
-                'erro': 'Paciente inválido.'
-            })
-
         data_hora = request.POST.get('data_hora')
         observacoes = request.POST.get('observacoes', '')
+
+        if not paciente_id or not data_hora:
+            return render(request, 'agendamento_form.html', {
+                'erro': 'Paciente e data são obrigatórios.'
+            })
+
+        paciente = get_object_or_404(Paciente, pk=paciente_id)
 
         Agendamento.objects.create(
             paciente=paciente,
@@ -107,83 +82,73 @@ def agendamento_create(request):
             observacoes=observacoes,
             encaminhado_por=request.user
         )
+
         return redirect('agendamento_list')
 
-    return render(request, 'agendamento_form.html', {'user': request.user})
+    return render(request, 'agendamento_form.html')
 
-
-from django.shortcuts import redirect, get_object_or_404
-from .models import Agendamento
-from triagem.models import FilaTriagem  # importar o modelo da fila
-
+# ==============================
+# ENVIAR PARA TRIAGEM (com bloqueio de duplicidade)
+# ==============================
 @login_required
 def enviar_triagem(request, pk):
     agendamento = get_object_or_404(Agendamento, pk=pk)
 
-    # Atualiza o status do agendamento
     agendamento.status = 'TR'
     agendamento.save()
 
-    # Verifica se já existe na fila para não duplicar
-    fila_existente = FilaTriagem.objects.filter(paciente=agendamento.paciente, atendido=False).exists()
-    if not fila_existente:
+    if not FilaTriagem.objects.filter(
+        paciente=agendamento.paciente,
+        atendido=False
+    ).exists():
         FilaTriagem.objects.create(paciente=agendamento.paciente)
 
     return redirect('agendamento_list')
 
 
-# agendamento/views.py
-from django.http import JsonResponse
-from paciente.models import Paciente
-from django.contrib.auth.decorators import login_required
-
+# ==============================
+# BUSCA DE PACIENTE (AUTOCOMPLETE)
+# ==============================
 @login_required
 def buscar_paciente(request):
     term = request.GET.get('term', '')
     pacientes = Paciente.objects.filter(nome__icontains=term)[:10]
-    resultados = []
-    for paciente in pacientes:
-        resultados.append({
+
+    resultados = [
+        {
             'id': paciente.id,
-            'label': f"{paciente.nome} - {paciente.cpf}",  # Pode mostrar CPF ou outro dado
+            'label': f"{paciente.nome} - {paciente.cpf}",
             'value': paciente.nome
-        })
+        }
+        for paciente in pacientes
+    ]
+
     return JsonResponse(resultados, safe=False)
 
-from django.shortcuts import render
-from django.contrib.auth.decorators import login_required
-from collections import Counter
-from .models import Agendamento
-
+# ==============================
+# RELATÓRIO POR STATUS (dia / mês / ano)
+# ==============================
 @login_required
 def relatorio_list(request):
     agendamentos = Agendamento.objects.all()
 
-    # Receber filtros do GET
     dia = request.GET.get('dia')
     mes = request.GET.get('mes')
     ano = request.GET.get('ano')
 
-    # Filtro por DIA (data completa)
     if dia:
         agendamentos = agendamentos.filter(data_hora__date=dia)
-
-    # Filtro por MÊS
     if mes:
         agendamentos = agendamentos.filter(data_hora__month=mes)
-
-    # Filtro por ANO
     if ano:
         agendamentos = agendamentos.filter(data_hora__year=ano)
 
-    # Contagem por status
     status_count = Counter(ag.status for ag in agendamentos)
-
-    # Converter status para texto
     status_display = dict(Agendamento.STATUS_CHOICES)
+
     relatorios = {
-        status_display.get(status, status): quantidade
-        for status, quantidade in status_count.items()
+        status_display.get(status, status): qtd
+        for status, qtd in status_count.items()
     }
 
     return render(request, 'relatorio_list.html', {
@@ -193,21 +158,20 @@ def relatorio_list(request):
         'ano': ano
     })
 
-from django.shortcuts import render
-from django.contrib.auth.decorators import login_required
-from django.db.models import Count
-from .models import Agendamento
+# ==============================
+# RELATÓRIO DE AGENDAMENTOS POR DIA
+# ==============================
 
 @login_required
 def agendamento_por_dia(request):
-    # Agrupa agendamentos por data e conta a quantidade
     agendamentos_dia = (
         Agendamento.objects
-        .values('data_hora__date')   # agrupa pela data
-        .annotate(qtd=Count('id'))   # conta quantos agendamentos
-        .order_by('data_hora__date') # ordena pela data
+        .values('data_hora__date')
+        .annotate(qtd=Count('id'))
+        .order_by('data_hora__date')
     )
 
     return render(request, 'agendamento_por_dia.html', {
         'agendamentos_dia': agendamentos_dia
     })
+
