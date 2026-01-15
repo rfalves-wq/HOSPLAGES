@@ -1,4 +1,5 @@
-from django.contrib.auth.decorators import user_passes_test
+# paciente/decorators.py
+from django.core.exceptions import PermissionDenied
 
 def grupo_requerido(grupos):
     def decorator(view_func):
@@ -8,7 +9,8 @@ def grupo_requerido(grupos):
                 request.user.groups.filter(name__in=grupos).exists()
             ):
                 return view_func(request, *args, **kwargs)
-            from django.http import HttpResponseForbidden
-            return HttpResponseForbidden("Acesso negado.")
+
+            raise PermissionDenied  # ← ISSO ativa o 403.html
+
         return _wrapped_view
     return decorator

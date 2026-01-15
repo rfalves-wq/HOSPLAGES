@@ -10,3 +10,10 @@ path('triagem/', include('triagem.urls')),
 
 
 ]
+from django.conf.urls import handler403
+from django.shortcuts import render
+
+def custom_403_view(request, exception=None):
+    return render(request, '403.html', status=403)
+
+handler403 = custom_403_view
