@@ -36,7 +36,27 @@ class Paciente(models.Model):
     identidade_genero = models.CharField(max_length=50)
     orientacao_sexual = models.CharField(max_length=50)
 
-    nacionalidade = models.CharField(max_length=50, default='Brasileira')
+    # =====================
+    # NACIONALIDADE
+    # =====================
+    NACIONALIDADE_CHOICES = [
+        ('BRASILEIRA', 'Brasileira'),
+        ('ARGENTINA', 'Argentina'),
+        ('BOLIVIANA', 'Boliviana'),
+        ('CHILENA', 'Chilena'),
+        ('COLOMBIANA', 'Colombiana'),
+        ('PARAGUAIA', 'Paraguaia'),
+        ('PERUANA', 'Peruana'),
+        ('URUGUAIA', 'Uruguaia'),
+        ('VENEZUELANA', 'Venezuelana'),
+        ('OUTRA', 'Outra'),
+    ]
+    nacionalidade = models.CharField(
+        max_length=20,
+        choices=NACIONALIDADE_CHOICES,
+        default='BRASILEIRA'
+    )
+
     naturalidade = models.CharField(max_length=100)  # Cidade / UF
 
     RACA_COR_CHOICES = [
@@ -57,7 +77,26 @@ class Paciente(models.Model):
     ]
     estado_civil = models.CharField(max_length=20, choices=ESTADO_CIVIL_CHOICES)
 
-    escolaridade = models.CharField(max_length=50)
+    # =====================
+    # ESCOLARIDADE
+    # =====================
+    ESCOLARIDADE_CHOICES = [
+        ('SEM_INSTRUCAO', 'Sem instrução'),
+        ('FUNDAMENTAL_INCOMPLETO', 'Fundamental incompleto'),
+        ('FUNDAMENTAL_COMPLETO', 'Fundamental completo'),
+        ('MEDIO_INCOMPLETO', 'Médio incompleto'),
+        ('MEDIO_COMPLETO', 'Médio completo'),
+        ('SUPERIOR_INCOMPLETO', 'Superior incompleto'),
+        ('SUPERIOR_COMPLETO', 'Superior completo'),
+        ('POS_GRADUACAO', 'Pós-graduação'),
+        ('MESTRADO', 'Mestrado'),
+        ('DOUTORADO', 'Doutorado'),
+    ]
+    escolaridade = models.CharField(
+        max_length=30,
+        choices=ESCOLARIDADE_CHOICES
+    )
+
     profissao = models.CharField(max_length=50)
 
     # =====================
@@ -127,4 +166,4 @@ class Paciente(models.Model):
     cartao_sus = models.CharField(max_length=18, blank=True, null=True)
 
     def __str__(self):
-        return self.nome
+        return f"{self.nome} ({self.cpf})"
