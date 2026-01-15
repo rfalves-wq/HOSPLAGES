@@ -1,5 +1,10 @@
 from django.db import models
 from django.core.validators import RegexValidator
+from django.contrib.auth import get_user_model
+from django.utils import timezone
+
+User = get_user_model()
+
 
 class Paciente(models.Model):
 
@@ -15,13 +20,15 @@ class Paciente(models.Model):
     cpf = models.CharField(
         max_length=14,
         unique=True,
-        validators=[RegexValidator(
-            r'^\d{3}\.\d{3}\.\d{3}-\d{2}$',
-            'CPF inválido! Use XXX.XXX.XXX-XX'
-        )]
+        validators=[
+            RegexValidator(
+                r'^\d{3}\.\d{3}\.\d{3}-\d{2}$',
+                'CPF inválido! Use XXX.XXX.XXX-XX'
+            )
+        ]
     )
 
-    data_nascimento = models.DateField()  # NÃO ALTERADO
+    data_nascimento = models.DateField()
 
     # =====================
     # DADOS SOCIODEMOGRÁFICOS
@@ -57,7 +64,7 @@ class Paciente(models.Model):
         default='BRASILEIRA'
     )
 
-    naturalidade = models.CharField(max_length=100)  # Cidade / UF
+    naturalidade = models.CharField(max_length=100)
 
     RACA_COR_CHOICES = [
         ('BRANCA', 'Branca'),
@@ -92,10 +99,7 @@ class Paciente(models.Model):
         ('MESTRADO', 'Mestrado'),
         ('DOUTORADO', 'Doutorado'),
     ]
-    escolaridade = models.CharField(
-        max_length=30,
-        choices=ESCOLARIDADE_CHOICES
-    )
+    escolaridade = models.CharField(max_length=30, choices=ESCOLARIDADE_CHOICES)
 
     profissao = models.CharField(max_length=50)
 
@@ -121,7 +125,12 @@ class Paciente(models.Model):
     # =====================
     cep = models.CharField(
         max_length=9,
-        validators=[RegexValidator(r'^\d{5}-\d{3}$', 'CEP inválido! Use XXXXX-XXX')]
+        validators=[
+            RegexValidator(
+                r'^\d{5}-\d{3}$',
+                'CEP inválido! Use XXXXX-XXX'
+            )
+        ]
     )
     endereco = models.CharField(max_length=100)
     numero = models.CharField(max_length=10)
@@ -143,18 +152,22 @@ class Paciente(models.Model):
         max_length=15,
         blank=True,
         null=True,
-        validators=[RegexValidator(
-            r'^\(\d{2}\)\s\d{4}-\d{4}$',
-            'Telefone inválido! Use (XX) XXXX-XXXX'
-        )]
+        validators=[
+            RegexValidator(
+                r'^\(\d{2}\)\s\d{4}-\d{4}$',
+                'Telefone inválido! Use (XX) XXXX-XXXX'
+            )
+        ]
     )
 
     celular = models.CharField(
         max_length=15,
-        validators=[RegexValidator(
-            r'^\(\d{2}\)\s\d{5}-\d{4}$',
-            'Celular inválido! Use (XX) XXXXX-XXXX'
-        )]
+        validators=[
+            RegexValidator(
+                r'^\(\d{2}\)\s\d{5}-\d{4}$',
+                'Celular inválido! Use (XX) XXXXX-XXXX'
+            )
+        ]
     )
 
     whatsapp = models.BooleanField(default=False)
@@ -164,6 +177,20 @@ class Paciente(models.Model):
     # SUS
     # =====================
     cartao_sus = models.CharField(max_length=18, blank=True, null=True)
+
+    # =====================
+    # AUDITORIA
+    # =====================
+    criado_por = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='pacientes_criados'
+    )
+
+    data_criacao = models.DateTimeField(default=timezone.now, editable=False)
+    data_atualizacao = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f"{self.nome} ({self.cpf})"
