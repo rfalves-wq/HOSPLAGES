@@ -7,7 +7,6 @@ from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from triagem.models import FilaTriagem
-
 @login_required
 def fila_triagem(request):
     # Pacientes na fila, não atendidos
@@ -18,12 +17,24 @@ def fila_triagem(request):
     
     # Quantidade por tempo de espera
     tempo_espera_0_5 = fila.filter(data_entrada__gte=timezone.now()-timezone.timedelta(minutes=5)).count()
-    tempo_espera_5_15 = fila.filter(data_entrada__lt=timezone.now()-timezone.timedelta(minutes=5),
-                                     data_entrada__gte=timezone.now()-timezone.timedelta(minutes=15)).count()
+    tempo_espera_5_15 = fila.filter(
+        data_entrada__lt=timezone.now()-timezone.timedelta(minutes=5),
+        data_entrada__gte=timezone.now()-timezone.timedelta(minutes=15)
+    ).count()
     tempo_espera_15_ = fila.filter(data_entrada__lt=timezone.now()-timezone.timedelta(minutes=15)).count()
 
+    # Adiciona tempo de espera em horas e minutos para cada paciente
+    fila_formatada = []
+    now = timezone.now()
+    for item in fila:
+        tempo_espera_min = int((now - item.data_entrada).total_seconds() // 60)
+        horas = tempo_espera_min // 60
+        minutos = tempo_espera_min % 60
+        item.tempo_espera_horas = f"{horas}h {minutos}m"
+        fila_formatada.append(item)
+
     return render(request, 'triagem/fila_triagem.html', {
-        'fila': fila,
+        'fila': fila_formatada,
         'total_pacientes': total_pacientes,
         'tempo_espera_0_5': tempo_espera_0_5,
         'tempo_espera_5_15': tempo_espera_5_15,
