@@ -65,7 +65,7 @@
             <tr>
                 <th>Nome</th>
                 <th>CPF</th>
-                <th>Telefone</th>
+                <th>Telefones</th>
                 <th>Email</th>
                 <th>Ações</th>
             </tr>
@@ -75,7 +75,10 @@
             <tr>
                 <td>{{ paciente.nome }}</td>
                 <td>{{ paciente.cpf }}</td>
-                <td>{{ paciente.telefone }}</td>
+                <td>
+                    {% if paciente.telefone_fixo %}{{ paciente.telefone_fixo }}{% endif %}
+                    {% if paciente.celular %} / {{ paciente.celular }}{% endif %}
+                </td>
                 <td>{{ paciente.email }}</td>
                 <td class="btn-actions">
                     <a href="{% url 'paciente_edit' paciente.id %}" class="btn btn-sm btn-warning" title="Editar">
