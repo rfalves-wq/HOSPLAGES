@@ -1,38 +1,31 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from django.utils import timezone
-
 from paciente.models import Paciente
 from .models import Triagem, FilaTriagem
 from .forms import TriagemForm
-
-
+from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+from django.utils import timezone
+from triagem.models import FilaTriagem
 @login_required
 def fila_triagem(request):
-    # Pacientes aguardando TRIAGEM (ainda não triados)
+    # Pacientes na fila, não atendidos
     fila = FilaTriagem.objects.filter(atendido=False).order_by('data_entrada')
 
     # Contagem para dashboard
     total_pacientes = fila.count()
     
     # Quantidade por tempo de espera
-    tempo_espera_0_5 = fila.filter(
-        data_entrada__gte=timezone.now() - timezone.timedelta(minutes=5)
-    ).count()
-
+    tempo_espera_0_5 = fila.filter(data_entrada__gte=timezone.now()-timezone.timedelta(minutes=5)).count()
     tempo_espera_5_15 = fila.filter(
-        data_entrada__lt=timezone.now() - timezone.timedelta(minutes=5),
-        data_entrada__gte=timezone.now() - timezone.timedelta(minutes=15)
+        data_entrada__lt=timezone.now()-timezone.timedelta(minutes=5),
+        data_entrada__gte=timezone.now()-timezone.timedelta(minutes=15)
     ).count()
+    tempo_espera_15_ = fila.filter(data_entrada__lt=timezone.now()-timezone.timedelta(minutes=15)).count()
 
-    tempo_espera_15_ = fila.filter(
-        data_entrada__lt=timezone.now() - timezone.timedelta(minutes=15)
-    ).count()
-
-    # Tempo de espera formatado
+    # Adiciona tempo de espera em horas e minutos para cada paciente
     fila_formatada = []
     now = timezone.now()
-
     for item in fila:
         tempo_espera_min = int((now - item.data_entrada).total_seconds() // 60)
         horas = tempo_espera_min // 60
@@ -49,6 +42,7 @@ def fila_triagem(request):
     })
 
 
+
 @login_required
 def realizar_triagem(request, paciente_id):
     paciente = get_object_or_404(Paciente, id=paciente_id)
@@ -62,14 +56,8 @@ def realizar_triagem(request, paciente_id):
             triagem.enfermeiro = request.user
             triagem.save()
 
-            # Atualiza a fila:
-            # - atendido = True → triagem realizada
-            # - em_atendimento_medico continua False (médico ainda não chamou)
-            fila_item = FilaTriagem.objects.filter(
-                paciente=paciente,
-                atendido=False
-            ).first()
-
+            # Atualiza a fila: marca paciente como atendido
+            fila_item = FilaTriagem.objects.filter(paciente=paciente, atendido=False).first()
             if fila_item:
                 fila_item.atendido = True
                 fila_item.save()

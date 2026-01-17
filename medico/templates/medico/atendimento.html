@@ -11,30 +11,37 @@
     <h4>Paciente: {{ atendimento.paciente.nome }}</h4>
     <p>Idade: {{ atendimento.paciente.idade }} anos</p>
 
+    <!-- Formulário de atendimento -->
     <form method="post">
         {% csrf_token %}
 
         <div class="mb-3">
             <label>Queixa Principal</label>
-            <textarea class="form-control" name="queixa_principal"></textarea>
+            <textarea class="form-control" name="queixa_principal">{{ atendimento.queixa_principal }}</textarea>
         </div>
 
         <div class="mb-3">
             <label>Histórico da Doença Atual</label>
-            <textarea class="form-control" name="historico"></textarea>
+            <textarea class="form-control" name="historico">{{ atendimento.historico }}</textarea>
         </div>
 
         <div class="mb-3">
             <label>Diagnóstico</label>
-            <textarea class="form-control" name="diagnostico"></textarea>
+            <textarea class="form-control" name="diagnostico">{{ atendimento.diagnostico }}</textarea>
         </div>
 
         <div class="mb-3">
             <label>Conduta</label>
-            <textarea class="form-control" name="conduta"></textarea>
+            <textarea class="form-control" name="conduta">{{ atendimento.conduta }}</textarea>
         </div>
 
-        <button class="btn btn-success">Finalizar Atendimento</button>
+        <!-- Botão de salvar informações do atendimento -->
+        <button type="submit" class="btn btn-primary">Salvar Atendimento</button>
+
+        <!-- Botão de finalizar atendimento (link) -->
+        <a href="{% url 'medico:finalizar_atendimento' atendimento.id %}" class="btn btn-success ms-2">
+            Finalizar Atendimento
+        </a>
     </form>
 
 </div>
