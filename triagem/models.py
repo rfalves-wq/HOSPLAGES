@@ -5,16 +5,14 @@ from paciente.models import Paciente
 
 
 class FilaTriagem(models.Model):
-    paciente = models.ForeignKey(Paciente, on_delete=models.CASCADE)
-    data_entrada = models.DateTimeField(default=timezone.now)
+    paciente = models.ForeignKey(
+        Paciente,
+        on_delete=models.CASCADE,
+        related_name='filas_triagem'
+    )
+    data_entrada = models.DateTimeField(auto_now_add=True)
     atendido = models.BooleanField(default=False)
 
-    def tempo_espera_minutos(self):
-        delta = timezone.now() - self.data_entrada
-        return int(delta.total_seconds() / 60)
-
-    def __str__(self):
-        return self.paciente.nome
 
 
 class Triagem(models.Model):
@@ -50,3 +48,5 @@ class Triagem(models.Model):
 
     def __str__(self):
         return f'{self.paciente.nome} - {self.classificacao_risco}'
+
+
