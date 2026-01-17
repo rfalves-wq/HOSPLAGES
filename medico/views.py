@@ -12,11 +12,23 @@ def dashboard_medico(request):
 
 @login_required
 @grupo_requerido(['Medico'])
+@login_required
+@grupo_requerido(['Medico'])
 def lista_pacientes(request):
+    # Pacientes na fila
     pacientes_fila = FilaTriagem.objects.filter(
         status__in=['aguardando_medico', 'em_atendimento']
     ).order_by('data_entrada')
-    return render(request, 'medico/lista_pacientes.html', {'pacientes_fila': pacientes_fila})
+
+    # Para cada paciente, pega a última triagem
+    fila_formatada = []
+    for item in pacientes_fila:
+        ultima_triagem = Triagem.objects.filter(paciente=item.paciente).order_by('-data_triagem').first()
+        item.triagem = ultima_triagem  # atributo temporário
+        fila_formatada.append(item)
+
+    return render(request, 'medico/lista_pacientes.html', {'pacientes_fila': fila_formatada})
+
 
 @login_required
 @grupo_requerido(['Medico'])

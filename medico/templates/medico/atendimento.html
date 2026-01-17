@@ -13,17 +13,26 @@ body { background-color: #f1f8ff; }
 .risco-vermelho { background-color: #ff6b6b; color: white; padding: 10px; border-radius: 8px; text-align:center; }
 .risco-amarelo { background-color: #ffd93d; color: black; padding: 10px; border-radius: 8px; text-align:center; }
 .risco-verde { background-color: #6bcB77; color: white; padding: 10px; border-radius: 8px; text-align:center; }
+.alerta-vermelho { font-size: 1.2rem; font-weight: bold; }
 </style>
 </head>
 <body>
 
 <div class="container mt-4">
 
+    <!-- ALERTA DE RISCO VERMELHO -->
+    {% if triagem and triagem.classificacao_risco == "VERMELHO" %}
+    <div class="alert alert-danger text-center alerta-vermelho" role="alert">
+        ALERTA: Paciente em RISCO VERMELHO!
+    </div>
+    {% endif %}
+
+    <!-- INFORMAÇÕES DO PACIENTE -->
     <h4>Paciente: {{ atendimento.paciente.nome }}</h4>
     <p>Idade: {{ atendimento.paciente.idade }} anos</p>
 
     <div class="row">
-        <!-- Coluna Triagem -->
+        <!-- COLUNA TRIAGEM -->
         <div class="col-md-5">
             {% if triagem %}
             <div class="card">
@@ -56,12 +65,13 @@ body { background-color: #f1f8ff; }
             {% endif %}
         </div>
 
-        <!-- Coluna Atendimento Médico -->
+        <!-- COLUNA ATENDIMENTO MÉDICO -->
         <div class="col-md-7">
             <div class="card">
                 <div class="card-body">
                     <form method="post">
                         {% csrf_token %}
+
                         <div class="mb-3">
                             <label>Queixa Principal</label>
                             <textarea class="form-control" name="queixa_principal">{{ atendimento.queixa_principal }}</textarea>
@@ -82,7 +92,9 @@ body { background-color: #f1f8ff; }
                             <textarea class="form-control" name="conduta">{{ atendimento.conduta }}</textarea>
                         </div>
 
-                        <button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> Salvar Atendimento</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save"></i> Salvar Atendimento
+                        </button>
                         <a href="{% url 'medico:finalizar_atendimento' atendimento.id %}" class="btn btn-success ms-2">
                             <i class="bi bi-check-circle"></i> Finalizar Atendimento
                         </a>
@@ -93,6 +105,5 @@ body { background-color: #f1f8ff; }
     </div>
 
 </div>
-
 </body>
 </html>

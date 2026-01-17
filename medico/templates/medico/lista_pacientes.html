@@ -8,36 +8,47 @@
 <body class="bg-light">
 <div class="container mt-4">
     <h4>Pacientes em Atendimento</h4>
-    <table class="table table-striped mt-3">
-        <thead>
-            <tr>
-                <th>Nome</th>
-                <th>Status</th>
-                <th>Entrada</th>
-                <th>Ações</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for fila in pacientes_fila %}
-            <tr>
-                <td>{{ fila.paciente.nome }}</td>
-                <td>{{ fila.status|title }}</td>
-                <td>{{ fila.data_entrada|date:"d/m/Y H:i" }}</td>
-                <td>
-                    {% if fila.status == "aguardando_medico" %}
-                        <a href="{% url 'medico:chamar_proximo_paciente' %}" class="btn btn-primary btn-sm">Chamar</a>
-                    {% elif fila.status == "em_atendimento" and fila.paciente.atendimentomedico_set.last %}
-                        <a href="{% url 'medico:atendimento_medico' fila.paciente.atendimentomedico_set.last.id %}" class="btn btn-warning btn-sm">Visualizar</a>
+    <h4>Pacientes em Atendimento</h4>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Nome</th>
+            <th>Status</th>
+            <th>Entrada</th>
+            <th>Classificação de Risco</th>
+            <th>Ações</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in pacientes_fila %}
+        <tr>
+            <td>{{ item.paciente.nome }}</td>
+            <td>{{ item.status }}</td>
+            <td>{{ item.data_entrada|date:"d/m/Y H:i" }}</td>
+            <td>
+                {% if item.triagem %}
+                    {% if item.triagem.classificacao_risco == "VERMELHO" %}
+                        <span class="badge bg-danger">{{ item.triagem.get_classificacao_risco_display }}</span>
+                    {% elif item.triagem.classificacao_risco == "AMARELO" %}
+                        <span class="badge bg-warning text-dark">{{ item.triagem.get_classificacao_risco_display }}</span>
+                    {% elif item.triagem.classificacao_risco == "VERDE" %}
+                        <span class="badge bg-success">{{ item.triagem.get_classificacao_risco_display }}</span>
+                    {% else %}
+                        {{ item.triagem.get_classificacao_risco_display }}
                     {% endif %}
-                </td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="4" class="text-center">Nenhum paciente na fila.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+                {% else %}
+                    Sem triagem
+                {% endif %}
+            </td>
+            <td>
+                <a href="{% url 'medico:chamar_proximo_paciente' %}" class="btn btn-primary btn-sm">Atender</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
 </div>
 </body>
 </html>
