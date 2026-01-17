@@ -36,17 +36,49 @@ def chamar_proximo_paciente(request):
     
     return redirect('medico:atendimento_medico', atendimento.id)
 
+from django.shortcuts import render, get_object_or_404
+from triagem.models import FilaTriagem
+from medico.models import AtendimentoMedico
+from django.shortcuts import render, get_object_or_404
+from triagem.models import FilaTriagem
+from medico.models import AtendimentoMedico
+from django.contrib.auth.decorators import login_required
+from .decorators import grupo_requerido
+from django.shortcuts import render, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from .models import AtendimentoMedico
+from triagem.models import FilaTriagem
+from .decorators import grupo_requerido
+from triagem.models import Triagem
+
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib.auth.decorators import login_required
+from django.utils import timezone
+from medico.models import AtendimentoMedico
+from triagem.models import Triagem
+from .decorators import grupo_requerido
+
 @login_required
 @grupo_requerido(['Medico'])
 def atendimento_medico(request, atendimento_id):
     atendimento = get_object_or_404(AtendimentoMedico, id=atendimento_id)
+
+    # Pega a última triagem registrada do paciente
+    triagem = Triagem.objects.filter(paciente=atendimento.paciente).order_by('-data_triagem').first()
+
     if request.method == "POST":
+        # Atualiza os campos do atendimento
         atendimento.queixa_principal = request.POST.get('queixa_principal', '')
-        atendimento.historico = request.POST.get('historico', '')
+        atendimento.historico_doenca_atual = request.POST.get('historico', '')
         atendimento.diagnostico = request.POST.get('diagnostico', '')
         atendimento.conduta = request.POST.get('conduta', '')
         atendimento.save()
-    return render(request, 'medico/atendimento.html', {'atendimento': atendimento})
+
+    return render(request, 'medico/atendimento.html', {
+        'atendimento': atendimento,
+        'triagem': triagem
+    })
+
 
 @login_required
 @grupo_requerido(['Medico'])

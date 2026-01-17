@@ -1,49 +1,98 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <title>Atendimento Médico</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+<meta charset="UTF-8">
+<title>Atendimento Médico</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+<style>
+body { background-color: #f1f8ff; }
+.card, .card-dashboard { border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.08); margin-bottom: 20px; }
+.section-title { background-color: #e6f2ff; padding: 8px; border-radius: 6px; font-weight: bold; margin-bottom: 10px; }
+.risco-vermelho { background-color: #ff6b6b; color: white; padding: 10px; border-radius: 8px; text-align:center; }
+.risco-amarelo { background-color: #ffd93d; color: black; padding: 10px; border-radius: 8px; text-align:center; }
+.risco-verde { background-color: #6bcB77; color: white; padding: 10px; border-radius: 8px; text-align:center; }
+</style>
 </head>
-<body class="bg-light">
+<body>
+
 <div class="container mt-4">
 
     <h4>Paciente: {{ atendimento.paciente.nome }}</h4>
     <p>Idade: {{ atendimento.paciente.idade }} anos</p>
 
-    <!-- Formulário de atendimento -->
-    <form method="post">
-        {% csrf_token %}
-
-        <div class="mb-3">
-            <label>Queixa Principal</label>
-            <textarea class="form-control" name="queixa_principal">{{ atendimento.queixa_principal }}</textarea>
+    <div class="row">
+        <!-- Coluna Triagem -->
+        <div class="col-md-5">
+            {% if triagem %}
+            <div class="card">
+                <div class="card-body">
+                    <h5>Triagem de Enfermagem</h5>
+                    <div class="row g-2 mb-2">
+                        <div class="col-6"><strong>Pressão Arterial:</strong> {{ triagem.pressao_arterial }}</div>
+                        <div class="col-6"><strong>Temperatura:</strong> {{ triagem.temperatura }}</div>
+                        <div class="col-6"><strong>Frequência Cardíaca:</strong> {{ triagem.frequencia_cardiaca }}</div>
+                        <div class="col-6"><strong>Saturação:</strong> {{ triagem.saturacao }}</div>
+                    </div>
+                    <div class="mb-2"><strong>Queixa Principal:</strong> {{ triagem.queixa_principal }}</div>
+                    <div class="mb-2"><strong>Observações:</strong> {{ triagem.observacoes }}</div>
+                    <div class="mb-2">
+                        <strong>Classificação de Risco:</strong>
+                        {% if triagem.classificacao_risco == "VERMELHO" %}
+                            <span class="risco-vermelho">{{ triagem.get_classificacao_risco_display }}</span>
+                        {% elif triagem.classificacao_risco == "AMARELO" %}
+                            <span class="risco-amarelo">{{ triagem.get_classificacao_risco_display }}</span>
+                        {% elif triagem.classificacao_risco == "VERDE" %}
+                            <span class="risco-verde">{{ triagem.get_classificacao_risco_display }}</span>
+                        {% else %}
+                            {{ triagem.get_classificacao_risco_display }}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <p>Paciente sem triagem registrada.</p>
+            {% endif %}
         </div>
 
-        <div class="mb-3">
-            <label>Histórico da Doença Atual</label>
-            <textarea class="form-control" name="historico">{{ atendimento.historico }}</textarea>
+        <!-- Coluna Atendimento Médico -->
+        <div class="col-md-7">
+            <div class="card">
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label>Queixa Principal</label>
+                            <textarea class="form-control" name="queixa_principal">{{ atendimento.queixa_principal }}</textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label>Histórico da Doença Atual</label>
+                            <textarea class="form-control" name="historico">{{ atendimento.historico_doenca_atual }}</textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label>Diagnóstico</label>
+                            <textarea class="form-control" name="diagnostico">{{ atendimento.diagnostico }}</textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label>Conduta</label>
+                            <textarea class="form-control" name="conduta">{{ atendimento.conduta }}</textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> Salvar Atendimento</button>
+                        <a href="{% url 'medico:finalizar_atendimento' atendimento.id %}" class="btn btn-success ms-2">
+                            <i class="bi bi-check-circle"></i> Finalizar Atendimento
+                        </a>
+                    </form>
+                </div>
+            </div>
         </div>
-
-        <div class="mb-3">
-            <label>Diagnóstico</label>
-            <textarea class="form-control" name="diagnostico">{{ atendimento.diagnostico }}</textarea>
-        </div>
-
-        <div class="mb-3">
-            <label>Conduta</label>
-            <textarea class="form-control" name="conduta">{{ atendimento.conduta }}</textarea>
-        </div>
-
-        <!-- Botão de salvar informações do atendimento -->
-        <button type="submit" class="btn btn-primary">Salvar Atendimento</button>
-
-        <!-- Botão de finalizar atendimento (link) -->
-        <a href="{% url 'medico:finalizar_atendimento' atendimento.id %}" class="btn btn-success ms-2">
-            Finalizar Atendimento
-        </a>
-    </form>
+    </div>
 
 </div>
+
 </body>
 </html>
