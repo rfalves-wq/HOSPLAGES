@@ -5,27 +5,21 @@ from paciente.models import Paciente
 
 from django.db import models
 from paciente.models import Paciente
-from django.db import models
-from paciente.models import Paciente
-from django.utils import timezone
 
 class FilaTriagem(models.Model):
+    STATUS_CHOICES = [
+        ('aguardando_medico', 'Aguardando Médico'),
+        ('em_atendimento', 'Em Atendimento'),
+        ('finalizado', 'Finalizado'),
+    ]
+
     paciente = models.ForeignKey(Paciente, on_delete=models.CASCADE)
-    data_entrada = models.DateTimeField(default=timezone.now)  # hora de chegada
+    data_entrada = models.DateTimeField(auto_now_add=True)
     atendido = models.BooleanField(default=False)
-    # Campos da triagem
-    pressao_arterial = models.CharField(max_length=20, blank=True, null=True)
-    temperatura = models.DecimalField(max_digits=4, decimal_places=1, blank=True, null=True)
-    frequencia_cardiaca = models.IntegerField(blank=True, null=True)
-    saturacao = models.IntegerField(blank=True, null=True)
-    queixa_principal = models.TextField(blank=True, null=True)
-    observacoes = models.TextField(blank=True, null=True)
-    classificacao_risco = models.CharField(max_length=10, choices=[('VERMELHO','Vermelho'), ('AMARELO','Amarelo'), ('VERDE','Verde')], blank=True, null=True)
-    tempo_espera = models.DurationField(blank=True, null=True)  # tempo até a triagem
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='aguardando_medico')
 
     def __str__(self):
-        return f"{self.paciente.nome} - {'Atendido' if self.atendido else 'Aguardando'}"
-
+        return f"{self.paciente.nome} - {self.status}"
 
 
 class Triagem(models.Model):
