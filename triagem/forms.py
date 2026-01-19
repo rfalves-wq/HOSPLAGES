@@ -1,20 +1,10 @@
 from django import forms
-from .models import Triagem
+from .models import FilaTriagem
 
 class TriagemForm(forms.ModelForm):
     class Meta:
-        model = Triagem
+        model = FilaTriagem
         fields = [
-            'pressao_arterial',
-            'frequencia_cardiaca',
-            'temperatura',
-            'saturacao',
-            'queixa_principal',
-            'observacoes',
-            'classificacao_risco'
+            'pressao_arterial', 'temperatura', 'frequencia_cardiaca',
+            'saturacao', 'queixa_principal', 'observacoes', 'classificacao_risco'
         ]
-
-        widgets = {
-            'queixa_principal': forms.Textarea(attrs={'rows': 3}),
-            'observacoes': forms.Textarea(attrs={'rows': 3}),
-        }
