@@ -42,22 +42,30 @@ def fila_triagem(request):
     })
 
 
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.utils import timezone
+from paciente.models import Paciente
+from .models import Triagem, FilaTriagem
+from .forms import TriagemForm
 
 @login_required
 def realizar_triagem(request, paciente_id):
     paciente = get_object_or_404(Paciente, id=paciente_id)
+    now = timezone.now()
+
+    # Busca o item da fila ainda não atendido
+    fila_item = FilaTriagem.objects.filter(paciente=paciente, atendido=False).first()
 
     if request.method == 'POST':
         form = TriagemForm(request.POST)
         if form.is_valid():
-            # Salva a triagem
             triagem = form.save(commit=False)
             triagem.paciente = paciente
             triagem.enfermeiro = request.user
             triagem.save()
 
-            # Atualiza a fila: marca paciente como atendido
-            fila_item = FilaTriagem.objects.filter(paciente=paciente, atendido=False).first()
+            # Marca paciente como atendido na fila
             if fila_item:
                 fila_item.atendido = True
                 fila_item.save()
@@ -68,5 +76,7 @@ def realizar_triagem(request, paciente_id):
 
     return render(request, 'triagem/realizar_triagem.html', {
         'form': form,
-        'paciente': paciente
+        'paciente': paciente,
+        'fila_item': fila_item,  # Passa a fila para o template
+        'now': now,              # Passa hora atual para calcular tempo de espera
     })

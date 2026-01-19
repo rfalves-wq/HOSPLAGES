@@ -46,10 +46,22 @@
             <h5 class="card-title">Paciente: {{ paciente.nome }}</h5>
             <div class="row">
                 {% if paciente.idade %}
-                <div class="col-md-6"><p class="card-text"><strong>Idade:</strong> {{ paciente.idade }} anos</p></div>
+                <div class="col-md-3"><p class="card-text"><strong>Idade:</strong> {{ paciente.idade }} anos</p></div>
                 {% endif %}
                 {% if paciente.cpf %}
-                <div class="col-md-6"><p class="card-text"><strong>CPF:</strong> {{ paciente.cpf }}</p></div>
+                <div class="col-md-3"><p class="card-text"><strong>CPF:</strong> {{ paciente.cpf }}</p></div>
+                {% endif %}
+
+                {% if fila_item %}
+                <!-- Data/Hora de Chegada -->
+                <div class="col-md-3">
+                    <p class="card-text"><strong>Chegada:</strong> {{ fila_item.data_entrada|date:"d/m/Y H:i:s" }}</p>
+                </div>
+
+                <!-- Contador de Tempo de Espera -->
+                <div class="col-md-3">
+                    <p class="card-text"><strong>Tempo de Espera:</strong> <span id="tempo_espera"></span></p>
+                </div>
                 {% endif %}
             </div>
         </div>
@@ -122,6 +134,27 @@
         </div>
     </div>
 </div>
+
+{% if fila_item %}
+<!-- Script para contador em tempo real -->
+<script>
+    const chegada = new Date("{{ fila_item.data_entrada|date:'Y-m-d H:i:s' }}").getTime();
+
+    function atualizarTempo() {
+        const agora = new Date().getTime();
+        let diff = Math.floor((agora - chegada) / 1000); // segundos
+        const horas = Math.floor(diff / 3600);
+        diff %= 3600;
+        const minutos = Math.floor(diff / 60);
+        const segundos = diff % 60;
+        document.getElementById("tempo_espera").innerText =
+            (horas > 0 ? horas + "h " : "") + minutos + "m " + segundos + "s";
+    }
+
+    setInterval(atualizarTempo, 1000);
+    atualizarTempo(); // inicializa imediatamente
+</script>
+{% endif %}
 
 </body>
 </html>
