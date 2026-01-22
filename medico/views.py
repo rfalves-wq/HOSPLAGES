@@ -83,24 +83,42 @@ def lista_pacientes(request):
         'pacientes_fila': fila_formatada
     })
 
+from django.db import transaction
+from django.utils import timezone
 
 @login_required
 @grupo_requerido(['Medico'])
 def chamar_proximo_paciente(request):
-    paciente_fila = FilaTriagem.objects.filter(status='aguardando_medico').order_by('data_entrada').first()
-    if not paciente_fila:
-        return render(request, 'medico/sem_paciente.html')
 
-    atendimento = AtendimentoMedico.objects.create(
-        paciente=paciente_fila.paciente,
-        medico=request.user,
-        queixa_principal=""
-    )
+    with transaction.atomic():
+        paciente_fila = (
+            FilaTriagem.objects
+            .select_for_update(skip_locked=True)
+            .filter(status='aguardando_medico')
+            .order_by('data_entrada')
+            .first()
+        )
 
-    paciente_fila.status = 'em_atendimento'
-    paciente_fila.save()
+        if not paciente_fila:
+            return render(request, 'medico/sem_paciente.html')
+
+        # bloqueia o paciente IMEDIATAMENTE
+        paciente_fila.status = 'em_atendimento'
+        paciente_fila.medico = request.user
+        paciente_fila.data_inicio_atendimento = timezone.now()
+        paciente_fila.save()
+
+        atendimento = AtendimentoMedico.objects.create(
+            paciente=paciente_fila.paciente,
+            medico=request.user,
+            fila=paciente_fila,
+            queixa_principal="",
+            status='em_atendimento',
+            data_inicio=timezone.now()
+        )
 
     return redirect('medico:atendimento_medico', atendimento.id)
+
 
 
 @login_required
