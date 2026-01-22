@@ -85,12 +85,21 @@ def lista_pacientes(request):
 
 from django.db import transaction
 from django.utils import timezone
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.db import transaction
+from django.utils import timezone
+
+from .decorators import grupo_requerido
+from triagem.models import FilaTriagem, Triagem
+from medico.models import AtendimentoMedico
 
 @login_required
 @grupo_requerido(['Medico'])
 def chamar_proximo_paciente(request):
 
     with transaction.atomic():
+        # Seleciona o próximo paciente na fila que esteja aguardando atendimento
         paciente_fila = (
             FilaTriagem.objects
             .select_for_update(skip_locked=True)
@@ -99,25 +108,27 @@ def chamar_proximo_paciente(request):
             .first()
         )
 
+        # Se não houver paciente, renderiza a página "sem paciente"
         if not paciente_fila:
             return render(request, 'medico/sem_paciente.html')
 
-        # bloqueia o paciente IMEDIATAMENTE
+        # Atualiza o status da fila para "em atendimento" e atribui o médico
         paciente_fila.status = 'em_atendimento'
         paciente_fila.medico = request.user
         paciente_fila.data_inicio_atendimento = timezone.now()
         paciente_fila.save()
 
+        # Cria o atendimento médico usando apenas os campos válidos
         atendimento = AtendimentoMedico.objects.create(
             paciente=paciente_fila.paciente,
             medico=request.user,
-            fila=paciente_fila,
-            queixa_principal="",
-            status='em_atendimento',
+            queixa_principal="",  # Inicialmente vazio
             data_inicio=timezone.now()
         )
 
+    # Redireciona para a página de atendimento do paciente
     return redirect('medico:atendimento_medico', atendimento.id)
+
 
 
 

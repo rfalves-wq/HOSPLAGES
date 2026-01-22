@@ -30,6 +30,11 @@ label { font-weight: bold; margin-top: 10px; }
     <!-- Formulário -->
     <form method="post">
         {% csrf_token %}
+{% if erro %}
+<div class="alert alert-danger">
+    {{ erro }}
+</div>
+{% endif %}
 
         <!-- Paciente com autocomplete -->
         <label for="paciente_input">Paciente</label>

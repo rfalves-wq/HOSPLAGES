@@ -62,6 +62,12 @@ def agendamento_list(request):
 # ==============================
 # CRIAR AGENDAMENTO (com validação básica)
 # ==============================
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.utils import timezone
+from paciente.models import Paciente
+from .models import Agendamento
+
 @login_required
 def agendamento_create(request):
     if request.method == 'POST':
@@ -71,21 +77,50 @@ def agendamento_create(request):
 
         if not paciente_id or not data_hora:
             return render(request, 'agendamento_form.html', {
-                'erro': 'Paciente e data são obrigatórios.'
+                'erro': 'Paciente e data/hora são obrigatórios.'
             })
 
         paciente = get_object_or_404(Paciente, pk=paciente_id)
 
+        # ==============================
+        # Verifica duplicidade do paciente no mesmo dia
+        # ==============================
+        try:
+            data_obj = timezone.datetime.fromisoformat(data_hora)
+        except ValueError:
+            return render(request, 'agendamento_form.html', {
+                'erro': 'Formato de data/hora inválido.'
+            })
+
+        agendamento_existente = Agendamento.objects.filter(
+            paciente=paciente,
+            data_hora__date=data_obj.date()
+        ).exists()
+
+        if agendamento_existente:
+            return render(request, 'agendamento_form.html', {
+                'erro': 'Este paciente já possui um agendamento nesta data.',
+                'paciente_id': paciente_id,
+                'data_hora': data_hora,
+                'observacoes': observacoes
+            })
+
+        # ==============================
+        # Criação do agendamento
+        # ==============================
         Agendamento.objects.create(
             paciente=paciente,
-            data_hora=data_hora,
+            data_hora=data_obj,
             observacoes=observacoes,
             encaminhado_por=request.user
         )
 
         return redirect('agendamento_list')
 
+    # GET: exibe o formulário
     return render(request, 'agendamento_form.html')
+
+
 
 # ==============================
 # ENVIAR PARA TRIAGEM (com bloqueio de duplicidade)
